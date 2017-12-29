@@ -1,0 +1,12 @@
+---
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description:
+  An S3 bucket configured to serve a web site that's based on a BitBucket project.
+
+Resources:
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+#     WebsiteConfiguration:
+#       IndexDocument: index.html
+#       ErrorDocument: error.html
