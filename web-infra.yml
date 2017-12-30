@@ -60,17 +60,19 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       Path: '/'
-#      Policies:
-#      - PolicyName: pushtobucketpolicy
-#        PolicyDocument:
-#          Version: '2012-10-17'
-#          Statement:
-#          - Effect: Allow
-#          Action:
-#          - s3:GetObject
-#          - s3:PutObject
-#          - s3:PutObjectAcl
-#          Resource: !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
+      Policies:
+        - 
+          PolicyName: pushtobucketpolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - 
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                Resource: !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
 
 Outputs:
   WebsiteURL:
