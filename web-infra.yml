@@ -1,0 +1,78 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description:
+  An S3 bucket configured to serve a git repository as a static website.
+
+Resources:
+
+  WebsiteBucket:
+    Type: 'AWS::S3::Bucket'
+    DeletionPolicy: Delete
+    Properties:
+      AccessControl: PublicRead
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: error.html
+
+  BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      PolicyDocument:
+        Id: BucketPolicy
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
+      Bucket: !Ref WebsiteBucket
+
+  PushToBucketLambda:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Runtime: 'python3.6'
+      Handler: 'pushtobucket.handler'
+      Role:
+        Fn::GetAtt:
+          - 'PushToBucketLambdaRole'
+          - 'Arn'
+      Code:
+        S3Bucket: !ImportValue 'ptw-code-codebucket'
+        S3Key: 'pushtobucket.zip'
+        S3ObjectVersion: 'PUw50nwwqCGN0shCT8gn0KJXbYO7h0nI'
+      Timeout: '25'
+#      TracingConfig:
+#        Mode: 'Active'
+
+  PushToBucketLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+#      Policies:
+#      - PolicyName: pushtobucketpolicy
+#        PolicyDocument:
+#          Version: '2012-10-17'
+#          Statement:
+#          - Effect: Allow
+#          Action:
+#          - s3:GetObject
+#          - s3:PutObject
+#          - s3:PutObjectAcl
+#          Resource: !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
+
+Outputs:
+  WebsiteURL:
+    Value:
+      !GetAtt 'WebsiteBucket.WebsiteURL'
