@@ -4,7 +4,6 @@ import random
 import os
 
 file_name = 'test.txt'
-bucket_name = 'ptw-web-websitebucket-jypi0lv3hxec'
 
 def add_tmp_path(file_name):
     return os.path.join('/tmp', file_name)
@@ -29,6 +28,7 @@ def copy_file_to_bucket(file_name, bucket_name):
         f.close()
 
 def handler(event, context):
+    bucket_name = event['WebsiteBucket']
     create_random_file(file_name)
     copy_file_to_bucket(file_name, bucket_name)
 

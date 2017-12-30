@@ -41,7 +41,10 @@ Resources:
       Code:
         S3Bucket: !ImportValue 'ptw-code-codebucket'
         S3Key: 'pushtobucket.zip'
-        S3ObjectVersion: 'PUw50nwwqCGN0shCT8gn0KJXbYO7h0nI'
+        S3ObjectVersion: 'ljQ9PjnGUCxhW6OSi7ULtJvIscoh4SAd'
+      Environment:
+        Variables:
+          WebsiteBucket: !Ref WebsiteBucket
       Timeout: '25'
 #      TracingConfig:
 #        Mode: 'Active'
