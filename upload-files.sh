@@ -1,3 +1,3 @@
 #!/bin/bash -eux
 
-aws cloudformation create-stack --stack-name ptw-infrastructure --template-body file://infrastructure.yml
+aws s3 cp www s3://ptw-infrastructure-websitebucket-k0aguzr8adez/ --recursive --storage-class REDUCED_REDUNDANCY
