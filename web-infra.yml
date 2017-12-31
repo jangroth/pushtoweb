@@ -20,17 +20,17 @@ Resources:
         IndexDocument: index.html
         ErrorDocument: error.html
 
-  PushToBucketLambda:
+  CloneIntoBucketLambda:
     Type: 'AWS::Lambda::Function'
     Properties:
       Runtime: 'python3.6'
-      Handler: 'pushtobucket.handler'
+      Handler: 'cloneintobucket.handler'
       Role:
-        !GetAtt 'PushToBucketLambdaRole.Arn'
+        !GetAtt 'CloneIntoBucketLambdaRole.Arn'
       Code:
         S3Bucket: !ImportValue 'ptw-code-codebucket'
-        S3Key: 'pushtobucket.zip'
-        S3ObjectVersion: '3EmvsCe11qL0si7IIYtKVn6wO.x3QCHO'
+        S3Key: 'cloneintobucket.zip'
+        S3ObjectVersion: 'Y0MBCHnInm9fhqfRZ19pJ37REZIpBO0x'
       Environment:
         Variables:
           WEBSITE_BUCKET: !Ref WebsiteBucket
@@ -39,15 +39,15 @@ Resources:
 #      TracingConfig:
 #        Mode: 'Active'
 
-  TriggerPushToBucketTopic: 
+  TriggerCloneIntoBucketTopic: 
     Type: 'AWS::SNS::Topic'
     Properties: 
       Subscription: 
         - 
           Endpoint: 
-            !GetAtt 'PushToBucketLambda.Arn'
+            !GetAtt 'CloneIntoBucketLambda.Arn'
           Protocol: 'lambda'
-      TopicName: 'triggerpushtobuckettopic' 
+      TopicName: 'triggercloneintobuckettopic' 
 
   WebsiteBucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
@@ -63,7 +63,7 @@ Resources:
             Resource: !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
       Bucket: !Ref WebsiteBucket
 
-  PushToBucketLambdaRole:
+  CloneIntoBucketLambdaRole:
     Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
@@ -79,7 +79,7 @@ Resources:
       Path: '/'
       Policies:
         - 
-          PolicyName: pushtobucketpolicy
+          PolicyName: cloneintobucketpolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -101,8 +101,8 @@ Resources:
     Properties:
       Action: 'lambda:InvokeFunction'
       Principal: 'sns.amazonaws.com'
-      SourceArn: !Ref TriggerPushToBucketTopic
-      FunctionName: !GetAtt 'PushToBucketLambda.Arn'
+      SourceArn: !Ref TriggerCloneIntoBucketTopic
+      FunctionName: !GetAtt 'CloneIntoBucketLambda.Arn'
 
 
 Outputs:
