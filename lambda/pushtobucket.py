@@ -2,6 +2,10 @@ import boto3
 import datetime
 import random
 import os
+import logging
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
 
 file_name = 'test.txt'
 
@@ -28,9 +32,11 @@ def copy_file_to_bucket(file_name, bucket_name):
         f.close()
 
 def handler(event, context):
-    bucket_name = event['WebsiteBucket']
+    logger.info('Invoking handler')
+    bucket_name = os.environ['WEBSITE_BUCKET']
     create_random_file(file_name)
     copy_file_to_bucket(file_name, bucket_name)
+    logger.info('Finished successfully.')
 
 if __name__ == '__main__':
     handler(None, None)

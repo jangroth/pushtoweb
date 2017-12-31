@@ -15,11 +15,39 @@ Resources:
         IndexDocument: index.html
         ErrorDocument: error.html
 
-  BucketPolicy:
+  PushToBucketLambda:
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Runtime: 'python3.6'
+      Handler: 'pushtobucket.handler'
+      Role:
+        !GetAtt 'PushToBucketLambdaRole.Arn'
+      Code:
+        S3Bucket: !ImportValue 'ptw-code-codebucket'
+        S3Key: 'pushtobucket.zip'
+        S3ObjectVersion: '3onRaBICFakCr2tAYGgL58anKmPc.j_X'
+      Environment:
+        Variables:
+          WEBSITE_BUCKET: !Ref WebsiteBucket
+      Timeout: '25'
+#      TracingConfig:
+#        Mode: 'Active'
+
+  TriggerPushToBucketTopic: 
+    Type: 'AWS::SNS::Topic'
+    Properties: 
+      Subscription: 
+        - 
+          Endpoint: 
+            !GetAtt 'PushToBucketLambda.Arn'
+          Protocol: 'lambda'
+      TopicName: 'triggerpushtobuckettopic' 
+
+  WebsiteBucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
     Properties:
       PolicyDocument:
-        Id: BucketPolicy
+        Id: WebsiteBucketPolicy
         Version: 2012-10-17
         Statement:
           - Sid: PublicReadForGetBucketObjects
@@ -28,26 +56,6 @@ Resources:
             Action: 's3:GetObject'
             Resource: !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
       Bucket: !Ref WebsiteBucket
-
-  PushToBucketLambda:
-    Type: 'AWS::Lambda::Function'
-    Properties:
-      Runtime: 'python3.6'
-      Handler: 'pushtobucket.handler'
-      Role:
-        Fn::GetAtt:
-          - 'PushToBucketLambdaRole'
-          - 'Arn'
-      Code:
-        S3Bucket: !ImportValue 'ptw-code-codebucket'
-        S3Key: 'pushtobucket.zip'
-        S3ObjectVersion: 'ljQ9PjnGUCxhW6OSi7ULtJvIscoh4SAd'
-      Environment:
-        Variables:
-          WebsiteBucket: !Ref WebsiteBucket
-      Timeout: '25'
-#      TracingConfig:
-#        Mode: 'Active'
 
   PushToBucketLambdaRole:
     Type: 'AWS::IAM::Role'
@@ -76,6 +84,20 @@ Resources:
                   - s3:PutObject
                   - s3:PutObjectAcl
                 Resource: !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
+              - 
+                Effect: Allow
+                Action:
+                  - logs:*
+                Resource: 'arn:aws:logs:*:*:*'
+  
+  LambdaInvokePermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      Principal: 'sns.amazonaws.com'
+      SourceArn: !Ref TriggerPushToBucketTopic
+      FunctionName: !GetAtt 'PushToBucketLambda.Arn'
+
 
 Outputs:
   WebsiteURL:
