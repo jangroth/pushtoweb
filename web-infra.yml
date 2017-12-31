@@ -25,7 +25,7 @@ Resources:
       Code:
         S3Bucket: !ImportValue 'ptw-code-codebucket'
         S3Key: 'pushtobucket.zip'
-        S3ObjectVersion: '3onRaBICFakCr2tAYGgL58anKmPc.j_X'
+        S3ObjectVersion: 'MHVG16291tqTAhAECsKcUij32XK2p1Gw'
       Environment:
         Variables:
           WEBSITE_BUCKET: !Ref WebsiteBucket
