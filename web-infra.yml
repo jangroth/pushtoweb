@@ -4,6 +4,11 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description:
   An S3 bucket configured to serve a git repository as a static website.
 
+Parameters:
+  RepoUrl:
+    Type: String
+    Description: URL of repository to clone from
+
 Resources:
 
   WebsiteBucket:
@@ -25,10 +30,11 @@ Resources:
       Code:
         S3Bucket: !ImportValue 'ptw-code-codebucket'
         S3Key: 'pushtobucket.zip'
-        S3ObjectVersion: 'MHVG16291tqTAhAECsKcUij32XK2p1Gw'
+        S3ObjectVersion: '3EmvsCe11qL0si7IIYtKVn6wO.x3QCHO'
       Environment:
         Variables:
           WEBSITE_BUCKET: !Ref WebsiteBucket
+          REPO_URL: !Ref RepoUrl
       Timeout: '25'
 #      TracingConfig:
 #        Mode: 'Active'
