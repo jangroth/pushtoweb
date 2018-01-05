@@ -12,6 +12,7 @@ rm -rf $DIST_DIR
 mkdir -p $DIST_DIR
 
 cp "${LAMBDA_DIR}/cloneintobucket.py" $DIST_DIR
+cp "${LAMBDA_DIR}/git-2.4.3.tar" $DIST_DIR
 cp -r "${DEPENDENCY_DIR}/." $DIST_DIR
 rm -rf ${DIST_DIR}/boto*
 rm -rf ${DIST_DIR}/s3*
