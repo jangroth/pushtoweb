@@ -2,7 +2,9 @@
 
 CONTAINER_NAME='lambda_local'
 
-docker rm --force $CONTAINER_NAME
+if [[ -n `docker ps --quiet --filter "name=$CONTAINER_NAME"` ]] ; then
+  docker rm --force $CONTAINER_NAME
+fi
 
 CONTAINER_ID=`docker run \
     --volume $PWD/../lambda:/var/task \
