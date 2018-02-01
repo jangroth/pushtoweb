@@ -2,8 +2,9 @@
 
 CONTAINER_NAME='lambda_local'
 
-if [[ -n `docker ps --quiet --filter "name=$CONTAINER_NAME"` ]] ; then
-  docker rm --force $CONTAINER_NAME
+if [[ -n `docker ps --quiet --all --filter "name=$CONTAINER_NAME"` ]] ; then
+    echo 'Removing existing container...'
+    docker rm --force $CONTAINER_NAME
 fi
 
 CONTAINER_ID=`docker run \
