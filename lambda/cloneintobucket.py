@@ -3,11 +3,12 @@ import os
 import re
 import shutil
 import tempfile
-import time
 from datetime import datetime
 
 import boto3
 from dateutil import tz
+
+from jinja2 import Environment, FileSystemLoader
 
 logger = logging.getLogger()
 logging.basicConfig()
@@ -74,6 +75,42 @@ class RepoToBucket:
         self._copy_files_into_bucket()
 
 
+class BucketToWeb:
+    def __init__(self, path_to_files, path_to_web):
+        self.path_to_files = path_to_files
+        self.path_to_web = path_to_web
+        self.path_to_templates = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+        self.jinja_environment = Environment(
+            autoescape=False,
+            loader=FileSystemLoader(self.path_to_templates),
+            trim_blocks=False)
+
+    def _is_markdown_file(self, file):
+        return os.path.isfile(os.path.join(self.path_to_files, file)) and file.endswith('.md')
+
+    def _get_name(self, file):
+        return os.path.splitext(file)[0]
+
+    def _read_file_info(self):
+        result = []
+        files = [f for f in os.listdir(self.path_to_files) if self._is_markdown_file(f)]
+        for file in files:
+            result.append({'name': self._get_name(file)})
+        return result
+
+    def _render_template(self, template_name, context):
+        return self.jinja_environment.get_template(template_name).render(context)
+
+    def _generate_index_page(self, file_info):
+        with open(os.path.join(self.path_to_web, 'index.html'), 'w') as f:
+            html = self._render_template('index.html.jinja', file_info)
+            f.write(html)
+
+    def generate_web_page(self):
+        file_info = self._read_file_info()
+        self._generate_index_page({'notes': file_info})
+
+
 def handler(event, context):
     logger.info('Invoking handler')
 
@@ -87,4 +124,7 @@ def handler(event, context):
 
 
 if __name__ == '__main__':
-    handler(None, None)
+    # handler(None, None)
+    path_to_files = '/home/jan/data/dev/projects/notes/'
+    path_to_web = '/home/jan/data/dev/projects/pushtoweb/www'
+    BucketToWeb(path_to_files, path_to_web).generate_web_page()
