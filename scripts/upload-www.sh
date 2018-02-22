@@ -2,5 +2,5 @@
 
 source config.src
 
-cd ..
+cd ../infra
 aws s3 cp www s3://${WEB_BUCKET_NAME}/ --recursive --storage-class REDUCED_REDUNDANCY

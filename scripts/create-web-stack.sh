@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
-cd ..
+cd ../infra
 aws cloudformation create-stack \
   --stack-name ptw-web \
   --template-body file://web-infra.yml \

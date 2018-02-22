@@ -1,6 +1,6 @@
 #!/bin/bash -eux
 
-cd ..
+cd ../infra
 
 aws cloudformation update-stack \
   --stack-name ptw-code \

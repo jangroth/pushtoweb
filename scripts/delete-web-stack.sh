@@ -1,4 +1,4 @@
 #!/bin/bash -eux
 
-cd ..
+cd ../infra
 aws cloudformation delete-stack --stack-name ptw-infrastructure
