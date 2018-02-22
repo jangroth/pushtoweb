@@ -1,5 +1,6 @@
 import logging
 import os
+import subprocess
 import re
 import shutil
 import tempfile
@@ -13,6 +14,24 @@ from jinja2 import Environment, FileSystemLoader
 logger = logging.getLogger()
 logging.basicConfig()
 logger.setLevel(logging.INFO)
+
+
+class GitHelper:
+    GIT_BINARY_TAR = 'git-2.4.3.tar'
+
+    def __init__(self, project_base_dir):
+        self.project_base_dir = project_base_dir
+        self.git_dir = os.path.join(self.project_base_dir, 'git')
+
+    def install(self):
+        os.mkdir(self.git_dir)
+        subprocess.check_output(['tar', '-C', self.git_dir, '-xf', self.GIT_BINARY_TAR])
+        os.environ['GIT_EXEC_PATH'] = os.path.join(self.git_dir, 'usr/libexec/git-core')
+        os.environ['GIT_TEMPLATE_DIR'] = os.path.join(self.git_dir, 'usr/share/git-core/templates')
+        os.environ['LD_LIBRARY_PATH'] = os.path.join(self.git_dir, 'usr/lib64')
+
+    def run_command(self, command):
+        return subprocess.check_output([os.path.join(os.environ['GIT_EXEC_PATH'], 'git'), command], universal_newlines=True)
 
 
 class RepoToBucket:
@@ -91,11 +110,23 @@ class BucketToWeb:
     def _get_name(self, file):
         return os.path.splitext(file)[0]
 
+    def _get_path_to(self, *file_name):
+        # TODO: refactor paths
+        return os.path.join(self.path_to_files, *file_name)
+
+    def _get_updates(self, file):
+        # output = subprocess.check_output(["git", "--git-dir='{}.git'".format(self.path_to_files), "log", "--pretty='%cr'", "--", "{}".format(self._get_path_to(file))])
+        output = os.system("git --git-dir='{}.git' log".format(self.path_to_files))
+        print(output)
+        return '12'
+
     def _read_file_info(self):
         result = []
         files = [f for f in os.listdir(self.path_to_files) if self._is_markdown_file(f)]
         for file in files:
-            result.append({'name': self._get_name(file)})
+            result.append(
+                {'name': self._get_name(file),
+                 'updated': self._get_updates(file)})
         return result
 
     def _render_template(self, template_name, context):
