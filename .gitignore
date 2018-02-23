@@ -1,5 +1,5 @@
-lambda/*.zip
-lambda/dist
+code/*.zip
+code/dist
 .idea/
 venv3/
 www/index.html
