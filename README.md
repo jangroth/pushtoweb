@@ -1,3 +1,7 @@
-# pushtoweb
+# Push2Web
 
-Publishes the contents of a repository to an S3-based web site
+## TL;DR:
+*Markdown files* (git) -> *AWS* (Lambda) -> *Web page* (S3)
+
+## 
+TODO
