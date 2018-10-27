@@ -3,3 +3,4 @@ code/dist
 .idea/
 venv3/
 www/index.html
+*.retry
