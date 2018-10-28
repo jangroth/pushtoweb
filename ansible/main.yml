@@ -1,8 +1,44 @@
 ---
 - hosts: localhost
+  connection: local
   gather_facts: False
 
   tasks:
-    - name: debug
+    - name: Debug
       debug:
-        msg: "here is foo: {{foo}}"
+        msg: "Building environment '{{env.name}}'"
+
+    - name: Create bucket for lambda
+      s3_bucket:
+        region: "{{ region }}"
+        name: "{{ env.name }}-push-to-web-lambda-code-bucket"
+        versioning: true
+      register: task_output
+
+    - name: Store bucket name
+      set_fact:
+        lambda_code_bucket: "{{ task_output['name'] }}"
+
+    - name: Package lambda
+      archive:
+        path: "../code/cloneintobucket.py"
+        dest: "build_dir/cloneintobucket.py.zip"
+        format: zip
+
+    - name: Upload lambda to {{ lambda_code_bucket }}
+      aws_s3:
+        region: "{{ region }}"
+        bucket: "{{ lambda_code_bucket }}"
+        object: "cloneintobucket.py.zip"
+        src: "build_dir/cloneintobucket.py.zip"
+        mode: put
+
+
+
+
+
+#    - name: "Deploy stack"
+#      cloudformation:
+#        stack_name: "{{env.name}}-push-to-web"
+#        template: "cfn/code-infra.yaml"
+#        state: present

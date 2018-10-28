@@ -1,6 +1,4 @@
-code/*.zip
-code/dist
 .idea/
 venv3/
-www/index.html
+ansible/build_dir/
 *.retry

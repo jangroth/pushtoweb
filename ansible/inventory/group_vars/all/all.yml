@@ -1,4 +1,5 @@
 ---
-foo: bar
-ParameterKey: RepoUrl
-ParameterValue: "https://jangroth@bitbucket.org/jangroth/test-repo.git"
+region: ap-southeast-2
+
+ParameterKey: 'RepoUrl'
+ParameterValue: 'https://jangroth@bitbucket.org/jangroth/test-repo.git'
