@@ -1,6 +1,7 @@
 ---
 - hosts: localhost
   gather_facts: False
+  connection: local
 
   tasks:
     - name: Debug
@@ -11,26 +12,55 @@
       s3_bucket:
         region: "{{ region }}"
         name: "{{ env.name }}-push-to-web-lambda-code-bucket"
-        versioning: true
       register: task_output
 
-    - name: Store bucket name
+    - name: Register bucket name
       set_fact:
         lambda_code_bucket: "{{ task_output['name'] }}"
 
     - name: Package lambda
       archive:
-        path: "../code/cloneintobucket.py"
-        dest: "build_dir/cloneintobucket.py.zip"
+        path: "{{ dirs.code }}/{{ lambda.source }}"
+        dest: "{{ dirs.build }}/{{ lambda.zip }}"
         format: zip
+
+    - name: Get checksum
+      stat:
+        path: "{{ dirs.build }}/{{ lambda.zip }}"
+      register: task_output
+
+    - name: Register lambda name
+      set_fact:
+        lambda_name: "{{ lambda.zip }}-{{ task_output.stat.checksum}}"
+
+    - name: List keys simple
+      aws_s3:
+        region: "{{ region }}"
+        bucket:  "{{ lambda_code_bucket }}"
+        object: "{{ lambda_name }}"
+        mode: list
+      register: task_output
+
+    - name: Debug
+      debug:
+        msg: "Lambda already exists, skipping upload..."
+      when: "lambda_name in task_output.s3_keys"
 
     - name: Upload lambda to {{ lambda_code_bucket }}
       aws_s3:
         region: "{{ region }}"
         bucket: "{{ lambda_code_bucket }}"
-        object: "cloneintobucket.py.zip"
-        src: "build_dir/cloneintobucket.py.zip"
+        object: "{{ lambda_name }}"
+        src: "{{ dirs.build }}/{{ lambda.zip }}"
         mode: put
+      when: "lambda_name not in task_output.s3_keys"
+
+
+
+#
+#    - name: Debug
+#      debug:
+#        msg: "{{ task_output }}"
 
 
 
