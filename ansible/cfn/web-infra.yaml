@@ -5,6 +5,15 @@ Description:
   An S3 bucket configured to serve a git repository as a static website.
 
 Parameters:
+
+  LambdaCodeBucket:
+    Type: String
+    Description: Bucket to where the lambda has been uploaded
+
+  LambdaName:
+    Type: String
+    Description: Key of lambda in code bucket
+
   RepoUrl:
     Type: String
     Description: URL of repository to clone from
@@ -28,9 +37,8 @@ Resources:
       Role:
         !GetAtt 'CloneIntoBucketLambdaRole.Arn'
       Code:
-        S3Bucket: !ImportValue 'ptw-code-codebucket'
-        S3Key: 'cloneintobucket.zip'
-        S3ObjectVersion: 'Y0MBCHnInm9fhqfRZ19pJ37REZIpBO0x'
+        S3Bucket: !Ref LambdaCodeBucket
+        S3Key: !Ref LambdaName
       Environment:
         Variables:
           WEBSITE_BUCKET: !Ref WebsiteBucket
@@ -43,8 +51,7 @@ Resources:
     Type: 'AWS::SNS::Topic'
     Properties: 
       Subscription: 
-        - 
-          Endpoint: 
+        - Endpoint:
             !GetAtt 'CloneIntoBucketLambda.Arn'
           Protocol: 'lambda'
       TopicName: 'triggercloneintobuckettopic' 
@@ -69,8 +76,7 @@ Resources:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
-          -
-            Effect: Allow
+          - Effect: Allow
             Principal:
               Service:
                 - 'lambda.amazonaws.com'
@@ -78,20 +84,17 @@ Resources:
               - 'sts:AssumeRole'
       Path: '/'
       Policies:
-        - 
-          PolicyName: cloneintobucketpolicy
+        - PolicyName: cloneintobucketpolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - 
-                Effect: Allow
+              - Effect: Allow
                 Action:
                   - s3:GetObject
                   - s3:PutObject
                   - s3:PutObjectAcl
                 Resource: !Sub 'arn:aws:s3:::${WebsiteBucket}/*'
-              - 
-                Effect: Allow
+              - Effect: Allow
                 Action:
                   - logs:*
                 Resource: 'arn:aws:logs:*:*:*'

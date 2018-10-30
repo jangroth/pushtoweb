@@ -55,19 +55,12 @@
         mode: put
       when: "lambda_name not in task_output.s3_keys"
 
-
-
-#
-#    - name: Debug
-#      debug:
-#        msg: "{{ task_output }}"
-
-
-
-
-
-#    - name: "Deploy stack"
-#      cloudformation:
-#        stack_name: "{{env.name}}-push-to-web"
-#        template: "cfn/code-infra.yaml"
-#        state: present
+    - name: "Deploy stack"
+      cloudformation:
+        stack_name: "{{env.name}}-push-to-web"
+        template: "cfn/web-infra.yaml"
+        template_parameters:
+          LambdaCodeBucket: "{{ lambda_code_bucket }}"
+          LambdaName: "{{ lambda_name }}"
+          RepoUrl: "{{ repo.url }}"
+        state: present

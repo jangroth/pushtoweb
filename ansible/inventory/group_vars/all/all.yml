@@ -9,3 +9,6 @@ lambda:
   source: "cloneintobucket.py"
   zip: "cloneintobucket.zip"
 
+repo:
+  url: "https://jangroth@bitbucket.org/jangroth/test-repo.git"
+
