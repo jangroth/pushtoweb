@@ -1,4 +1,4 @@
 .idea/
 venv3/
-ansible/build_dir/
-*.retry
+ansible/build_dir/*
+!ansible/build_dir/.gitkeep
