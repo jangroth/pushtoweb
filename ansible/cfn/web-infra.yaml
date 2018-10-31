@@ -6,7 +6,11 @@ Description:
 
 Parameters:
 
-  LambdaCodeBucket:
+  WebSiteBucketName:
+    Type: String
+    Description: Bucket that hosts the website
+
+  LambdaCodeBucketName:
     Type: String
     Description: Bucket to where the lambda has been uploaded
 
@@ -24,6 +28,7 @@ Resources:
     Type: 'AWS::S3::Bucket'
     DeletionPolicy: Delete
     Properties:
+      BucketName: !Ref WebSiteBucketName
       AccessControl: PublicRead
       WebsiteConfiguration:
         IndexDocument: index.html
@@ -37,7 +42,7 @@ Resources:
       Role:
         !GetAtt 'CloneIntoBucketLambdaRole.Arn'
       Code:
-        S3Bucket: !Ref LambdaCodeBucket
+        S3Bucket: !Ref LambdaCodeBucketName
         S3Key: !Ref LambdaName
       Environment:
         Variables:

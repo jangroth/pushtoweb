@@ -20,7 +20,9 @@
 
     - name: Package lambda
       archive:
-        path: "{{ dirs.code }}/{{ lambda.source }}"
+        path:
+          - "{{ dirs.code }}/{{ lambda.source }}"
+          - "{{ dirs.code }}/git-2.4.3.tar"
         dest: "{{ dirs.build }}/{{ lambda.zip }}"
         format: zip
 
@@ -60,7 +62,8 @@
         stack_name: "{{env.name}}-push-to-web"
         template: "cfn/web-infra.yaml"
         template_parameters:
-          LambdaCodeBucket: "{{ lambda_code_bucket }}"
+          WebSiteBucketName: "{{ env.name }}-push-to-web-site"
+          LambdaCodeBucketName: "{{ lambda_code_bucket }}"
           LambdaName: "{{ lambda_name }}"
           RepoUrl: "{{ repo.url }}"
         state: present

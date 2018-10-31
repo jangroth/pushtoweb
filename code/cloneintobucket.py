@@ -1,12 +1,11 @@
+import boto3
 import logging
 import os
-import subprocess
 import re
 import shutil
+import subprocess
 import tempfile
 from datetime import datetime
-
-import boto3
 from dateutil import tz
 
 # from jinja2 import Environment, FileSystemLoader
@@ -19,6 +18,8 @@ logging.basicConfig(
     format='%(asctime)s %(name)-25s %(levelname)-8s %(message)s',
     level=logging.INFO)
 logger = logging.getLogger()
+logging.getLogger('boto3').setLevel(logging.ERROR)
+logging.getLogger('botocore').setLevel(logging.ERROR)
 
 
 class GitHelper:
@@ -56,12 +57,13 @@ class RepoToBucket:
         return full_path[tempdir_end + 1:]
 
     def _configure_git(self):
-        os.system('git clone {}'.format(self.repo_url))
+        logger.info('installing git...')
         os.system('tar -C {} -xf git-2.4.3.tar'.format(self.temp_dir))
-        os.environ['GIT_EXEC_PATH'] = self._get_path_to('usr/libexec/git-core')
+        os.environ['GIT_EXEC_PATH'] = self._get_path_to('/usr/libexec/git-core')
         os.environ['GIT_TEMPLATE_DIR'] = self._get_path_to('/usr/share/git-core/templates')
 
     def _clone_repo(self):
+        logger.info('cloning repo...')
         repo_path = self._get_path_to('repo')
         os.system('GIT_TEMPLATE_DIR={}; {}/git clone --depth 1 {} {}'.format(
             self._get_path_to('/usr/share/git-core/templates'), self._get_path_to('usr/libexec/git-core'),
@@ -150,7 +152,7 @@ class RepoToBucket:
 
 
 def handler(event, context):
-    logger.info('Invoking handler')
+    logger.info('Lambda invoked')
 
     repo_url = os.environ.get('REPO_URL', 'https://jangroth@bitbucket.org/jangroth/test-repo.git')
     bucket_name = os.environ.get('WEBSITE_BUCKET', 'ptw-web-websitebucket-aa10mrx6putg')
