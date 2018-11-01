@@ -27,10 +27,12 @@ class GitHelper:
 
     def __init__(self, project_base_dir):
         self.project_base_dir = project_base_dir
-        self.git_dir = os.path.join(self.project_base_dir, 'git')
+        self.git_dir = os.path.join(self.project_base_dir, 'git-binaries')
 
     def install(self):
+        logger.info('Installing git into {}'.format(self.git_dir))
         os.mkdir(self.git_dir)
+        # untar into git_dir
         subprocess.check_output(['tar', '-C', self.git_dir, '-xf', self.GIT_BINARY_TAR])
         os.environ['GIT_EXEC_PATH'] = os.path.join(self.git_dir, 'usr/libexec/git-core')
         os.environ['GIT_TEMPLATE_DIR'] = os.path.join(self.git_dir, 'usr/share/git-core/templates')
@@ -47,7 +49,10 @@ class RepoToBucket:
         self.bucket_name = bucket_name
         self.runs_local = runs_local
         self.temp_dir = tempfile.mkdtemp(prefix='RepoToBucket_')
+        self.repo_dir = self._get_path_to('repo')
         self.s3 = boto3.client('s3')
+        self.git_helper = GitHelper(self.temp_dir)
+        self.git_helper.install()
 
     def _get_path_to(self, *file_name):
         return os.path.join(self.temp_dir, *file_name)
@@ -56,11 +61,11 @@ class RepoToBucket:
         tempdir_end = [m.start() for m in re.finditer(r"/", full_path)][2]
         return full_path[tempdir_end + 1:]
 
-    def _configure_git(self):
-        logger.info('installing git...')
-        os.system('tar -C {} -xf git-2.4.3.tar'.format(self.temp_dir))
-        os.environ['GIT_EXEC_PATH'] = self._get_path_to('/usr/libexec/git-core')
-        os.environ['GIT_TEMPLATE_DIR'] = self._get_path_to('/usr/share/git-core/templates')
+    # def _configure_git(self):
+    #     logger.info('installing git...')
+    #     os.system('tar -C {} -xf git-2.4.3.tar'.format(self.temp_dir))
+    #     os.environ['GIT_EXEC_PATH'] = self._get_path_to('usr/libexec/git-core')
+    #     os.environ['GIT_TEMPLATE_DIR'] = self._get_path_to('usr/share/git-core/templates')
 
     def _clone_repo(self):
         logger.info('cloning repo...')
@@ -70,7 +75,8 @@ class RepoToBucket:
             self.repo_url, repo_path))
         shutil.rmtree(self._get_path_to(repo_path, '.git'), ignore_errors=True)
 
-    def _create_timestamp(self):
+    def _create_timestamp_file(self):
+        logger.info('creating timestamp file...')
         utc = datetime.utcnow()
         to_zone = tz.gettz('Australia/Sydney')
         syd = datetime.utcnow().replace(tzinfo=to_zone).astimezone(to_zone)
@@ -78,17 +84,17 @@ class RepoToBucket:
             f.write('{} (UTC)\n{} (SYD)\n'.format(utc, syd))
             f.close()
 
-    def _copy_into_bucket(self, bucket_key, f):
+    def _copy_into_bucket(self, bucket_key, file):
         self.s3.put_object(
             Key=bucket_key,
-            Body=f,
+            Body=file,
             Bucket=self.bucket_name,
             StorageClass='REDUCED_REDUNDANCY',
             ContentType='text/plain'
         )
 
     def _copy_files_into_bucket(self):
-        for subdir, dirs, files in os.walk(self.temp_dir):
+        for subdir, dirs, files in os.walk(self._get_path_to('repo')):
             for file in [x for x in files if not x.startswith('.')]:
                 full_path = os.path.join(subdir, file)
                 bucket_key = self._strip_temp_dir(full_path)
@@ -99,7 +105,7 @@ class RepoToBucket:
     def copy_repo_into_bucket(self):
         self._configure_git()
         self._clone_repo()
-        self._create_timestamp()
+        self._create_timestamp_file()
         self._copy_files_into_bucket()
 
 
