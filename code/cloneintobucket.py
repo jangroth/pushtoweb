@@ -38,9 +38,10 @@ class GitHelper:
         os.environ['GIT_TEMPLATE_DIR'] = os.path.join(self.git_dir, 'usr/share/git-core/templates')
         os.environ['LD_LIBRARY_PATH'] = os.path.join(self.git_dir, 'usr/lib64')
 
-    def run_command(self, command):
-        return subprocess.check_output([os.path.join(os.environ['GIT_EXEC_PATH'], 'git'), command],
-                                       universal_newlines=True)
+    def run_command(self, *command):
+        git_binary = os.path.join(os.environ['GIT_EXEC_PATH'], 'git')
+        output = subprocess.check_output([git_binary] + command, stderr=True, universal_newlines=True)
+        logger.info('run command: {} {}\n{}'.format(git_binary, command, output))
 
 
 class RepoToBucket:
@@ -70,9 +71,12 @@ class RepoToBucket:
     def _clone_repo(self):
         logger.info('cloning repo...')
         repo_path = self._get_path_to('repo')
-        os.system('GIT_TEMPLATE_DIR={}; {}/git clone --depth 1 {} {}'.format(
-            self._get_path_to('/usr/share/git-core/templates'), self._get_path_to('usr/libexec/git-core'),
-            self.repo_url, repo_path))
+        self.git_helper.run_command('--version')
+        self.git_helper.run_command('clone', '--depth 1+', '{}'.format(self.repo_url), '{}'.format(repo_path))
+
+        # os.system('GIT_TEMPLATE_DIR={}; {}/git clone --depth 1 {} {}'.format(
+        #     self._get_path_to('/usr/share/git-core/templates'), self._get_path_to('usr/libexec/git-core'),
+        #     self.repo_url, repo_path))
         shutil.rmtree(self._get_path_to(repo_path, '.git'), ignore_errors=True)
 
     def _create_timestamp_file(self):
@@ -103,7 +107,7 @@ class RepoToBucket:
                     self._copy_into_bucket(bucket_key, f)
 
     def copy_repo_into_bucket(self):
-        self._configure_git()
+        # self._configure_git()
         self._clone_repo()
         self._create_timestamp_file()
         self._copy_files_into_bucket()
