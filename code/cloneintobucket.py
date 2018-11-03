@@ -32,16 +32,15 @@ class GitHelper:
     def install(self):
         logger.info('Installing git into {}'.format(self.git_dir))
         os.mkdir(self.git_dir)
-        # untar into git_dir
         subprocess.check_output(['tar', '-C', self.git_dir, '-xf', self.GIT_BINARY_TAR])
         os.environ['GIT_EXEC_PATH'] = os.path.join(self.git_dir, 'usr/libexec/git-core')
         os.environ['GIT_TEMPLATE_DIR'] = os.path.join(self.git_dir, 'usr/share/git-core/templates')
         os.environ['LD_LIBRARY_PATH'] = os.path.join(self.git_dir, 'usr/lib64')
 
-    def run_command(self, *command):
+    def run_command(self, *commands):
         git_binary = os.path.join(os.environ['GIT_EXEC_PATH'], 'git')
-        output = subprocess.check_output([git_binary] + command, stderr=True, universal_newlines=True)
-        logger.info('run command: {} {}\n{}'.format(git_binary, command, output))
+        output = subprocess.check_output([git_binary] + list(commands), stderr=True, universal_newlines=True)
+        logger.info('run command: {} {}\n{}'.format(git_binary, commands, output))
 
 
 class RepoToBucket:
@@ -62,21 +61,11 @@ class RepoToBucket:
         tempdir_end = [m.start() for m in re.finditer(r"/", full_path)][2]
         return full_path[tempdir_end + 1:]
 
-    # def _configure_git(self):
-    #     logger.info('installing git...')
-    #     os.system('tar -C {} -xf git-2.4.3.tar'.format(self.temp_dir))
-    #     os.environ['GIT_EXEC_PATH'] = self._get_path_to('usr/libexec/git-core')
-    #     os.environ['GIT_TEMPLATE_DIR'] = self._get_path_to('usr/share/git-core/templates')
-
     def _clone_repo(self):
         logger.info('cloning repo...')
         repo_path = self._get_path_to('repo')
         self.git_helper.run_command('--version')
-        self.git_helper.run_command('clone', '--depth 1+', '{}'.format(self.repo_url), '{}'.format(repo_path))
-
-        # os.system('GIT_TEMPLATE_DIR={}; {}/git clone --depth 1 {} {}'.format(
-        #     self._get_path_to('/usr/share/git-core/templates'), self._get_path_to('usr/libexec/git-core'),
-        #     self.repo_url, repo_path))
+        self.git_helper.run_command('clone', '--depth', '1', '{}'.format(self.repo_url), '{}'.format(repo_path))
         shutil.rmtree(self._get_path_to(repo_path, '.git'), ignore_errors=True)
 
     def _create_timestamp_file(self):
@@ -84,7 +73,7 @@ class RepoToBucket:
         utc = datetime.utcnow()
         to_zone = tz.gettz('Australia/Sydney')
         syd = datetime.utcnow().replace(tzinfo=to_zone).astimezone(to_zone)
-        with open(self._get_path_to('last-update'), 'w+') as f:
+        with open(self._get_path_to('repo', 'last-update'), 'w+') as f:
             f.write('{} (UTC)\n{} (SYD)\n'.format(utc, syd))
             f.close()
 
