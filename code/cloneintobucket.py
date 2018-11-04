@@ -66,7 +66,7 @@ class RepoToBucket:
         logger.info('cloning repo...')
         self.git_helper.run_command('--version')
         self.git_helper.run_command('clone', '--depth', '1', '{}'.format(self.repo_url), '{}'.format(self.repo_dir))
-        shutil.rmtree(self._get_path_to(repo_path, '.git'), ignore_errors=True)
+        shutil.rmtree(self._get_path_to(self.repo_dir, '.git'), ignore_errors=True)
 
     def _create_timestamp_file(self):
         logger.info('creating timestamp file...')
@@ -101,52 +101,52 @@ class RepoToBucket:
         self._copy_files_into_bucket()
 
 
-# class BucketToWeb:
-#     def __init__(self, path_to_files, path_to_web):
-#         self.path_to_files = path_to_files
-#         self.path_to_web = path_to_web
-#         self.path_to_templates = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
-#         self.jinja_environment = Environment(
-#             autoescape=False,
-#             loader=FileSystemLoader(self.path_to_templates),
-#             trim_blocks=False)
-#
-#     def _is_markdown_file(self, file):
-#         return os.path.isfile(os.path.join(self.path_to_files, file)) and file.endswith('.md')
-#
-#     def _get_name(self, file):
-#         return os.path.splitext(file)[0]
-#
-#     def _get_path_to(self, *file_name):
-#         # TODO: refactor paths
-#         return os.path.join(self.path_to_files, *file_name)
-#
-#     def _get_updates(self, file):
-#         # output = subprocess.check_output(["git", "--git-dir='{}.git'".format(self.path_to_files), "log", "--pretty='%cr'", "--", "{}".format(self._get_path_to(file))])
-#         output = os.system("git --git-dir='{}.git' log".format(self.path_to_files))
-#         print(output)
-#         return '12'
-#
-#     def _read_file_info(self):
-#         result = []
-#         files = [f for f in os.listdir(self.path_to_files) if self._is_markdown_file(f)]
-#         for file in files:
-#             result.append(
-#                 {'name': self._get_name(file),
-#                  'updated': self._get_updates(file)})
-#         return result
-#
-#     def _render_template(self, template_name, context):
-#         return self.jinja_environment.get_template(template_name).render(context)
-#
-#     def _generate_index_page(self, file_info):
-#         with open(os.path.join(self.path_to_web, 'index.html'), 'w') as f:
-#             html = self._render_template('index.html.jinja', file_info)
-#             f.write(html)
-#
-#     def generate_web_page(self):
-#         file_info = self._read_file_info()
-#         self._generate_index_page({'notes': file_info})
+class BucketToWeb:
+    def __init__(self, path_to_files, path_to_web):
+        self.path_to_files = path_to_files
+        self.path_to_web = path_to_web
+        self.path_to_templates = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+        self.jinja_environment = Environment(
+            autoescape=False,
+            loader=FileSystemLoader(self.path_to_templates),
+            trim_blocks=False)
+
+    def _is_markdown_file(self, file):
+        return os.path.isfile(os.path.join(self.path_to_files, file)) and file.endswith('.md')
+
+    def _get_name(self, file):
+        return os.path.splitext(file)[0]
+
+    def _get_path_to(self, *file_name):
+        # TODO: refactor paths
+        return os.path.join(self.path_to_files, *file_name)
+
+    def _get_updates(self, file):
+        # output = subprocess.check_output(["git", "--git-dir='{}.git'".format(self.path_to_files), "log", "--pretty='%cr'", "--", "{}".format(self._get_path_to(file))])
+        output = os.system("git --git-dir='{}.git' log".format(self.path_to_files))
+        print(output)
+        return '12'
+
+    def _read_file_info(self):
+        result = []
+        files = [f for f in os.listdir(self.path_to_files) if self._is_markdown_file(f)]
+        for file in files:
+            result.append(
+                {'name': self._get_name(file),
+                 'updated': self._get_updates(file)})
+        return result
+
+    def _render_template(self, template_name, context):
+        return self.jinja_environment.get_template(template_name).render(context)
+
+    def _generate_index_page(self, file_info):
+        with open(os.path.join(self.path_to_web, 'index.html'), 'w') as f:
+            html = self._render_template('index.html.jinja', file_info)
+            f.write(html)
+
+    def generate_web_page(self):
+        file_info = self._read_file_info()
+        self._generate_index_page({'notes': file_info})
 
 
 def handler(event, context):
@@ -157,6 +157,8 @@ def handler(event, context):
     runs_local = event.get('local', None)
 
     RepoToBucket(repo_url, bucket_name, runs_local).copy_repo_into_bucket()
+    BucketToWeb('notes', )
+
 
     logger.info('Finished successfully.')
 
