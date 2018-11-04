@@ -1,4 +1,3 @@
-import boto3
 import logging
 import os
 import re
@@ -6,6 +5,8 @@ import shutil
 import subprocess
 import tempfile
 from datetime import datetime
+
+import boto3
 from dateutil import tz
 
 # from jinja2 import Environment, FileSystemLoader
@@ -49,7 +50,7 @@ class RepoToBucket:
         self.bucket_name = bucket_name
         self.runs_local = runs_local
         self.temp_dir = tempfile.mkdtemp(prefix='RepoToBucket_')
-        self.repo_dir = self._get_path_to('repo')
+        self.repo_dir = self._get_path_to('notes')
         self.s3 = boto3.client('s3')
         self.git_helper = GitHelper(self.temp_dir)
         self.git_helper.install()
@@ -63,9 +64,8 @@ class RepoToBucket:
 
     def _clone_repo(self):
         logger.info('cloning repo...')
-        repo_path = self._get_path_to('repo')
         self.git_helper.run_command('--version')
-        self.git_helper.run_command('clone', '--depth', '1', '{}'.format(self.repo_url), '{}'.format(repo_path))
+        self.git_helper.run_command('clone', '--depth', '1', '{}'.format(self.repo_url), '{}'.format(self.repo_dir))
         shutil.rmtree(self._get_path_to(repo_path, '.git'), ignore_errors=True)
 
     def _create_timestamp_file(self):
@@ -96,7 +96,6 @@ class RepoToBucket:
                     self._copy_into_bucket(bucket_key, f)
 
     def copy_repo_into_bucket(self):
-        # self._configure_git()
         self._clone_repo()
         self._create_timestamp_file()
         self._copy_files_into_bucket()

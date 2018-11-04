@@ -57,7 +57,7 @@
         mode: put
       when: "lambda_name not in task_output.s3_keys"
 
-    - name: "Deploy stack"
+    - name: Deploy stack
       cloudformation:
         stack_name: "{{env.name}}-push-to-web"
         template: "cfn/web-infra.yaml"
@@ -67,3 +67,11 @@
           LambdaName: "{{ lambda_name }}"
           RepoUrl: "{{ repo.url }}"
         state: present
+
+    - name: Upload static files
+      s3_sync:
+        region: "{{ region }}"
+        bucket:  "{{ env.name }}-push-to-web-site"
+        file_root: "../www"
+        file_change_strategy: "checksum"
+        permission: "public-read"
