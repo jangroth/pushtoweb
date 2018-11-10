@@ -1,0 +1,20 @@
+FROM amazonlinux:latest
+
+RUN yum -y install git \
+    python36 \
+    python36-pip \
+    zip \
+    && yum clean all
+
+RUN python3 -m pip install --upgrade pip \
+    && python3 -m pip install boto3
+
+
+ADD code code/
+ADD tests tests/
+ADD venv3 venv3/
+
+#CMD ['python3', '-m', 'unittest', 'discover', 'tests']
+
+ENTRYPOINT /bin/bash
+#CMD ["/bin/bash"]
