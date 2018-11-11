@@ -29,5 +29,5 @@ class GitHelperTest(unittest.TestCase):
     def _get_Git(self):
         git = GitHelper(self.temp_dir)
         git.GIT_BINARY_TAR = os.path.join(os.path.dirname(__file__), '..' , 'code' , git.GIT_BINARY_TAR)
-        git.install()
+        git._install()
         return git
