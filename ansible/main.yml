@@ -8,6 +8,16 @@
       debug:
         msg: "Building environment '{{env.name}}'"
 
+    - name: Create container for packaging lambda
+      shell: ../scripts/build-lambda-packaging-container.sh
+      args:
+        chdir: ../scripts
+
+    - name: Use container to package lambda
+      shell: ../scripts/package-lambda-with-container.sh
+      args:
+        chdir: ../scripts
+
     - name: Create bucket for lambda
       s3_bucket:
         region: "{{ region }}"
@@ -18,15 +28,11 @@
       set_fact:
         lambda_code_bucket: "{{ task_output['name'] }}"
 
-    - name: Package lambda
-      archive:
-        path:
-          - "{{ dirs.code }}/{{ lambda.source }}"
-          - "{{ dirs.code }}/git-2.4.3.tar"
-        dest: "{{ dirs.build }}/{{ lambda.zip }}"
-        format: zip
+    - name: Debug
+      debug:
+        msg: "Building environment '{{ dirs.build }}/{{ lambda.zip }}'"
 
-    - name: Get checksum
+    - name: Get checksum of lambda package
       stat:
         path: "{{ dirs.build }}/{{ lambda.zip }}"
       register: task_output
@@ -35,7 +41,7 @@
       set_fact:
         lambda_name: "{{ lambda.zip }}-{{ task_output.stat.checksum}}"
 
-    - name: List keys simple
+    - name: Get names of uploaded lambdas
       aws_s3:
         region: "{{ region }}"
         bucket:  "{{ lambda_code_bucket }}"
