@@ -174,6 +174,7 @@ def handler(event, context):
 
 if __name__ == '__main__':
     # handler(None, None)
+    print('yes')
     path_to_files = '/home/jan/data/dev/projects/notes/'
     path_to_web = '/home/jan/data/dev/projects/pushtoweb/www'
     # BucketToWeb(path_to_files, path_to_web).generate_web_page()
