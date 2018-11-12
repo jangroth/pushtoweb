@@ -6,7 +6,3 @@ RUN yum -y install git \
     zip \
     which \
     && yum clean all
-
-ADD code code/
-ADD build build/
-
