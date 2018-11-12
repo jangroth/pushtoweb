@@ -6,4 +6,4 @@ docker run --rm \
     --volume ${parent_folder}/scripts:/scripts:ro \
     --volume ${parent_folder}/code:/code:ro \
     --volume ${parent_folder}/build:/build \
-    ptw:lambdapackage /bin/bash -c '/scripts/package.sh && python3 /build/cloneintobucket.py'
+    ptw:lambdapackage /bin/bash -c '/scripts/package.sh && cd /build && python3 cloneintobucket.py'

@@ -35,7 +35,7 @@ class GitHelper:
     def _install(self):
         logger.info('Installing git into {}'.format(self.git_dir))
         os.mkdir(self.git_dir)
-        subprocess.check_output(['tar', '-C', self.git_dir, '-xf', self.GIT_BINARY_TAR])
+        subprocess.check_output(['tar', '-C', self.git_dir, '-xf', self.GIT_BINARY_TAR], stderr=subprocess.STDOUT, universal_newlines=True)
         os.environ['GIT_EXEC_PATH'] = os.path.join(self.git_dir, 'usr/libexec/git-core')
         os.environ['GIT_TEMPLATE_DIR'] = os.path.join(self.git_dir, 'usr/share/git-core/templates')
         os.environ['LD_LIBRARY_PATH'] = os.path.join(self.git_dir, 'usr/lib64')
@@ -65,9 +65,10 @@ class WebHelper:
 
 
 class RepoToBucket:
-    def __init__(self, repo_url, bucket_name):
+    def __init__(self, repo_url, bucket_name, local_run):
         self.repo_url = repo_url
         self.bucket_name = bucket_name
+        self.local_run = local_run
         self.s3 = boto3.client('s3')
         self.base_dir = tempfile.mkdtemp()
         self.site_dir = self._get_path_to(NOTES_FOLDER)
@@ -110,7 +111,8 @@ class RepoToBucket:
     def create(self):
         self._clone_repo()
         self._generate_website()
-        self._copy_site_to_bucket()
+        if not self.local_run:
+            self._copy_site_to_bucket()
 
 
 # class BucketToWeb:
@@ -162,19 +164,15 @@ class RepoToBucket:
 
 
 def handler(event, context):
-    logger.info('Lambda invoked')
+    logger.info('invoking lambda')
 
     repo_url = os.environ.get('REPO_URL', 'https://jangroth@bitbucket.org/jangroth/test-repo.git')
     bucket_name = os.environ.get('WEBSITE_BUCKET', 'test-push-to-web-site')
-    runs_local = event.get('local', None)
-    RepoToBucket(repo_url, bucket_name, runs_local).create()
+    local_run = event.get('local', None) is not None
+    RepoToBucket(repo_url, bucket_name, local_run).create()
 
     logger.info('Lambda finished successfully.')
 
 
 if __name__ == '__main__':
-    # handler(None, None)
-    print('yes')
-    path_to_files = '/home/jan/data/dev/projects/notes/'
-    path_to_web = '/home/jan/data/dev/projects/pushtoweb/www'
-    # BucketToWeb(path_to_files, path_to_web).generate_web_page()
+    handler({'local': True}, {})
