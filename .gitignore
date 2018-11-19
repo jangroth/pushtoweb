@@ -1,4 +1,4 @@
 .idea/
-venv3/
+venv/
 build/
 *.pyc

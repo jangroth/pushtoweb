@@ -4,6 +4,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 from datetime import datetime
 
 import boto3
@@ -172,6 +173,8 @@ def handler(event, context):
     RepoToBucket(repo_url, bucket_name, local_run).create()
 
     logger.info('Lambda finished successfully.')
+    if local_run:
+        time.sleep(60)
 
 
 if __name__ == '__main__':
