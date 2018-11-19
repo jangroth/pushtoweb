@@ -174,6 +174,7 @@ def handler(event, context):
 
     logger.info('Lambda finished successfully.')
     if local_run:
+        logger.info('Local run, keeping container alive for 1 minute.')
         time.sleep(60)
 
 

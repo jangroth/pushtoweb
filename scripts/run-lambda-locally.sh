@@ -13,4 +13,7 @@ CONTAINER_ID=`docker run \
     --detach \
     lambci/lambda:python3.6 cloneintobucket.handler '{"local": "true"}'`
 
+sleep 5
+docker logs ${CONTAINER_NAME}
+
 docker exec --interactive --tty ${CONTAINER_ID} /bin/bash
