@@ -1,6 +1,7 @@
 #!/bin/bash -eux
 
 CONTAINER_NAME='lambda_local'
+cp $PWD/../code/cloneintobucket.py $PWD/../build
 
 if [[ -n `docker ps --quiet --all --filter "name=$CONTAINER_NAME"` ]] ; then
     echo 'Removing existing container...'
@@ -13,6 +14,7 @@ CONTAINER_ID=`docker run \
     --detach \
     lambci/lambda:python3.6 cloneintobucket.handler '{"local": "true"}'`
 
+echo 'Waiting for logs to become available'
 sleep 5
 docker logs ${CONTAINER_NAME}
 
