@@ -9,6 +9,3 @@ RUN yum -y install python3 \
 
 RUN python3 -m pip install --upgrade pip \
     && python3 -m pip install boto3
-
-RUN ldconfig
-RUN export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH
